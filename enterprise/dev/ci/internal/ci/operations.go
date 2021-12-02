@@ -411,7 +411,7 @@ const vagrantServiceAccount = "buildkite@sourcegraph-ci.iam.gserviceaccount.com"
 func serverE2E(candidateTag string) operations.Operation {
 	return func(p *bk.Pipeline) {
 		p.AddStep(":chromium: Sourcegraph E2E",
-			bk.Agent("dave-test", "true"),
+			bk.Agent("queue", "e2e-test"),
 			// Run tests against the candidate server image
 			bk.DependsOn(candidateImageStepKey("server")),
 			bk.Env("CANDIDATE_VERSION", candidateTag),
