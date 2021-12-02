@@ -25,6 +25,7 @@ import { HeroPage } from '../../components/HeroPage'
 import { PageTitle } from '../../components/PageTitle'
 import { SearchContextProps, SearchStreamingProps } from '../../search'
 import { StreamingSearchResultsListProps } from '../../search/results/StreamingSearchResultsList'
+import { useExperimentalFeatures } from '../../stores'
 import { toTreeURL } from '../../util/url'
 import { FilePathBreadcrumbs } from '../FilePathBreadcrumbs'
 import { HoverThresholdProps } from '../RepoContainer'
@@ -64,7 +65,6 @@ interface Props
     globbing: boolean
     isMacPlatform: boolean
     isSourcegraphDotCom: boolean
-    showSearchNotebook: boolean
     repoUrl: string
 }
 
@@ -72,6 +72,7 @@ export const BlobPage: React.FunctionComponent<Props> = props => {
     const [wrapCode, setWrapCode] = useState(ToggleLineWrap.getValue())
     let renderMode = getModeFromURL(props.location)
     const { repoName, revision, commitID, filePath, isLightTheme, useBreadcrumb, mode, repoUrl } = props
+    const showSearchNotebook = useExperimentalFeatures(features => features.showSearchNotebook)
 
     // Log view event whenever a new Blob, or a Blob with a different render mode, is visited.
     useEffect(() => {
@@ -175,7 +176,7 @@ export const BlobPage: React.FunctionComponent<Props> = props => {
         blobInfoOrError &&
         !isErrorLike(blobInfoOrError) &&
         blobInfoOrError.filePath.endsWith(SEARCH_NOTEBOOK_FILE_EXTENSION) &&
-        props.showSearchNotebook
+        showSearchNotebook
 
     // If url explicitly asks for a certain rendering mode, renderMode is set to that mode, else it checks:
     // - If file contains richHTML and url does not include a line number: We render in richHTML.
