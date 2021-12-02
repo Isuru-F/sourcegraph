@@ -411,7 +411,7 @@ const vagrantServiceAccount = "buildkite@sourcegraph-ci.iam.gserviceaccount.com"
 func serverE2E(candidateTag string) operations.Operation {
 	return func(p *bk.Pipeline) {
 		p.AddStep(":chromium: Sourcegraph E2E",
-			bk.Agent("queue", "baremetal"),
+			bk.Agent("dave-test", "true"),
 			// Run tests against the candidate server image
 			bk.DependsOn(candidateImageStepKey("server")),
 			bk.Env("CANDIDATE_VERSION", candidateTag),
@@ -427,7 +427,7 @@ func serverE2E(candidateTag string) operations.Operation {
 			bk.Env("TEST_USER_EMAIL", "test@sourcegraph.com"),
 			bk.Env("TEST_USER_PASSWORD", "supersecurepassword"),
 			bk.Env("INCLUDE_ADMIN_ONBOARDING", "false"),
-			bk.Cmd(".buildkite/vagrant-run.sh sourcegraph-e2e"),
+			bk.Cmd("./dev/ci/test/e2e/test.sh"),
 			bk.ArtifactPaths("./*.png", "./*.mp4", "./*.log"))
 	}
 }
