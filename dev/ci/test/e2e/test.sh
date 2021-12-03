@@ -14,6 +14,7 @@ dev/ci/test/setup-display.sh
 cleanup() {
   cd "$root_dir"
   dev/ci/test/cleanup-display.sh
+  docker rm -f $(docker ps -aq)
 }
 trap cleanup EXIT
 
