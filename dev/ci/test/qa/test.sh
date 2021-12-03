@@ -33,7 +33,7 @@ else
   IMAGE=sourcegraph/server:insiders
 fi
 
-./dev/run-server-image.sh -d --name $CONTAINER
+echo y | ./dev/run-server-image.sh -d --name $CONTAINER
 trap docker_logs exit
 sleep 15
 
