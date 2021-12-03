@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
-
-source ~/.profile
+set -euo pipefail
 
 asdf install
 yarn
