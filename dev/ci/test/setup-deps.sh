@@ -2,9 +2,8 @@
 
 set -euxo pipefail
 
+source ~/.profile
 
-pwd
-id
 asdf install
 yarn
 yarn generate
