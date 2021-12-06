@@ -33,13 +33,14 @@ interface BackendInsightProps
     insight: SearchBackendBasedInsight
 
     innerRef: Ref<HTMLElement>
+    resizing: boolean
 }
 
 /**
  * Renders BE search based insight. Fetches insight data by gql api handler.
  */
 export const BackendInsight: React.FunctionComponent<BackendInsightProps> = props => {
-    const { telemetryService, insight, innerRef, ...otherProps } = props
+    const { telemetryService, insight, innerRef, resizing, ...otherProps } = props
 
     const { dashboard } = useContext(DashboardInsightsContext)
     const { getBackendInsightData, createInsight, updateInsight } = useContext(CodeInsightsBackendContext)
@@ -162,7 +163,9 @@ export const BackendInsight: React.FunctionComponent<BackendInsightProps> = prop
                 [styles.cardWithFilters]: isFiltersOpen,
             })}
         >
-            {loading || isDeleting ? (
+            {resizing ? (
+                <View.Banner>Resizing</View.Banner>
+            ) : loading || isDeleting ? (
                 <View.LoadingContent
                     text={isDeleting ? 'Deleting code insight' : 'Loading code insight'}
                     description={insight.id}
