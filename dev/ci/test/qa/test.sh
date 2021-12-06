@@ -11,8 +11,6 @@ set -ex
 dev/ci/test/setup-deps.sh
 dev/ci/test/setup-display.sh
 
-
-
 # ==========================
 
 CONTAINER=sourcegraph-server
@@ -41,7 +39,6 @@ echo y | ./dev/run-server-image.sh -d --name $CONTAINER
 trap docker_logs exit
 sleep 15
 trap cleanup EXIT
-
 
 echo "--- init sourcegraph"
 pushd internal/cmd/init-sg

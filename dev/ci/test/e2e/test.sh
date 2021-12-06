@@ -16,7 +16,7 @@ cleanup() {
   dev/ci/test/cleanup-display.sh
   if [[ $(docker ps -aq | wc -l) -gt 0 ]]; then
     docker rm -f "$(docker ps -aq)"
-  fi  
+  fi
 }
 trap cleanup EXIT
 
