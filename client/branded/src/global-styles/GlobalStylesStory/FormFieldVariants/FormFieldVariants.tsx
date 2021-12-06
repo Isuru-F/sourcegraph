@@ -1,5 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
+
+import { RadioButton } from '@sourcegraph/wildcard'
 import 'storybook-addon-designs'
 
 import styles from './FormFieldVariants.module.scss'
@@ -87,17 +89,14 @@ export const FormFieldVariants: React.FunctionComponent = () => (
         <WithVariants
             field={({ className, message, variant, ...props }) => (
                 <fieldset className="form-check">
-                    <input
+                    <RadioButton
                         id={`inputFieldsetRadio - ${variant}`}
-                        type="radio"
                         className={classNames('form-check-input', className)}
                         name={`inputFieldsetRadio - ${variant}`}
+                        label="Radio button"
+                        message={message}
                         {...props}
                     />
-                    <label className="form-check-label" htmlFor={`inputFieldsetRadio - ${variant}`}>
-                        Radio button
-                    </label>
-                    {message}
                 </fieldset>
             )}
         />

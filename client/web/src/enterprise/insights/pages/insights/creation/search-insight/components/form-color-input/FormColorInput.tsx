@@ -4,6 +4,8 @@ import openColor from 'open-color'
 import React, { ChangeEventHandler, memo } from 'react'
 import { noop } from 'rxjs'
 
+import { RadioButton } from '@sourcegraph/wildcard'
+
 import styles from './FormColorInput.module.scss'
 
 interface FormColorInputProps {
@@ -29,7 +31,14 @@ export const DEFAULT_ACTIVE_COLOR = 'var(--oc-grape-7)'
 
 /** Displays custom radio group for picking color of code insight chart line. */
 export const FormColorInput: React.FunctionComponent<FormColorInputProps> = memo(props => {
-    const { className, value = null, title, name, colours = DEFAULT_COLOURS, onChange = noop } = props
+    const {
+        className,
+        value = null,
+        title,
+        name = 'form_color_input',
+        colours = DEFAULT_COLOURS,
+        onChange = noop,
+    } = props
 
     return (
         <fieldset className={classNames('d-flex flex-column', className)}>
@@ -37,25 +46,25 @@ export const FormColorInput: React.FunctionComponent<FormColorInputProps> = memo
 
             <div>
                 {colours.map(colorInfo => (
-                    <label
+                    <RadioButton
                         key={colorInfo.color}
-                        /* eslint-disable-next-line react/forbid-dom-props */
-                        style={{ color: colorInfo.color }}
-                        title={colorInfo.name}
-                        className={styles.formColorPickerColorBlock}
-                    >
-                        <input
-                            type="radio"
-                            name={name}
-                            aria-label={colorInfo.name}
-                            value={colorInfo.color}
-                            checked={value === colorInfo.color}
-                            className={styles.formColorPickerNativeRadioControl}
-                            onChange={onChange}
-                        />
-
-                        <span className={styles.formColorPickerRadioControl} />
-                    </label>
+                        id={`${colorInfo.name}`}
+                        name={name}
+                        value={colorInfo.color}
+                        checked={value === colorInfo.color}
+                        className={styles.formColorPickerNativeRadioControl}
+                        onChange={onChange}
+                        label={
+                            <div
+                                /* eslint-disable-next-line react/forbid-dom-props */
+                                style={{ color: colorInfo.color }}
+                                title={colorInfo.name}
+                                className={styles.formColorPickerColorBlock}
+                            >
+                                <span className={styles.formColorPickerRadioControl} />
+                            </div>
+                        }
+                    />
                 ))}
             </div>
         </fieldset>
