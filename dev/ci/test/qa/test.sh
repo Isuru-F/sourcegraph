@@ -14,7 +14,9 @@ dev/ci/test/setup-display.sh
 cleanup() {
   cd "$root_dir"
   dev/ci/test/cleanup-display.sh
-  docker rm -f $(docker ps -aq)
+  if [[ $(docker ps -aq | wc -l) -gt 0 ]]; then
+    docker rm -f "$(docker ps -aq)"
+  fi
 }
 trap cleanup EXIT
 
@@ -60,4 +62,5 @@ test_status=0
 pushd client/web
 yarn run test:regression || test_status=1
 popd
+docker rm -f $CONTAINER
 exit $test_status
