@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,6 +23,8 @@ import (
 	"github.com/sourcegraph/sourcegraph/internal/types"
 	"github.com/sourcegraph/sourcegraph/internal/workerutil"
 )
+
+const userAddedRepoLimitError = "reached maximum allowed user added repos"
 
 // A Syncer periodically synchronizes available repositories from all its given Sources
 // with the stored Repositories in Sourcegraph.
@@ -397,6 +400,15 @@ func (s *Syncer) SyncExternalService(
 		return errors.Wrap(err, "fetching external services")
 	}
 
+	syncError, err := s.Store.ExternalServiceStore.GetLastSyncError(ctx, externalServiceID)
+	if err != nil {
+		return errors.Wrap(err, "fetching errors of external services")
+	}
+
+	if err := checkLastError(syncError); err != nil {
+		return err
+	}
+
 	// Unless our site config explicitly allows private code or the user has the
 	// "AllowUserExternalServicePrivate" tag, user added external services should
 	// only sync public code.
@@ -514,6 +526,27 @@ func (s *Syncer) SyncExternalService(
 	return errs.ErrorOrNil()
 }
 
+// TODO doc
+func checkLastError(syncError string) (err error) {
+	errorLineStartIdx := strings.Index(syncError, userAddedRepoLimitError)
+
+	if errorLineStartIdx > -1 {
+		syncErrorWithoutPrefix := syncError[errorLineStartIdx:]
+		syncErrorLine := syncErrorWithoutPrefix[:strings.Index(syncErrorWithoutPrefix, "\n")]
+		numberRegex := regexp.MustCompile(`/[0-9]+`)
+		limits := numberRegex.FindAllString(syncErrorLine, 2)
+		userLimit, err := strconv.Atoi(limits[1][1:])
+		if err != nil {
+			return errors.New("parsing user repo limit")
+		}
+		confUserLimit := conf.UserReposMaxPerUser()
+		if confUserLimit <= userLimit {
+			return errors.New("skip sync because user reached maximum allowed user added repos")
+		}
+	}
+	return nil
+}
+
 func (s *Syncer) userReposMaxPerSite() uint64 {
 	if n := uint64(s.UserReposMaxPerSite); n > 0 {
 		return n
@@ -615,7 +648,8 @@ func (s *Syncer) sync(ctx context.Context, svc *types.ExternalService, sourced *
 				}
 
 				return Diff{}, errors.Errorf(
-					"reached maximum allowed user added repos: site:%d/%d, user:%d/%d (username: %q)",
+					"%s: site:%d/%d, user:%d/%d (username: %q)",
+					userAddedRepoLimitError,
 					siteAdded, siteLimit,
 					userAdded, userLimit,
 					username,
