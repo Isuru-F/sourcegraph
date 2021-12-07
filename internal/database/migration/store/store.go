@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/cockroachdb/errors"
 	"github.com/keegancsmith/sqlf"
@@ -103,9 +104,14 @@ func (s *Store) runMigrationQuery(ctx context.Context, definition definition.Def
 		return err
 	}
 
+	fmt.Printf("SET VERSION %v -> %v: %s\n", expectedCurrentVersion, definition.ID, query.Query(sqlf.PostgresBindVar))
+	fmt.Printf("Tx? %v\n", s.InTransaction())
+
 	if err := s.Exec(ctx, query); err != nil {
+		fmt.Printf("FAILED QUERY: %v\n", err)
 		return err
 	}
+	fmt.Printf("RAN QUERY\n")
 
 	if err := s.Exec(ctx, sqlf.Sprintf(`UPDATE %s SET dirty=false`, quote(s.migrationsTable))); err != nil {
 		return err

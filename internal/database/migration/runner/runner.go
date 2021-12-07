@@ -157,9 +157,12 @@ func (r *Runner) runSchema(ctx context.Context, options Options, context schemaC
 	}
 
 	if options.Up {
+		fmt.Printf("A\n")
 		if err := r.runSchemaUp(ctx, options, context); err != nil {
+			fmt.Printf("B %v\n", err)
 			return err
 		}
+		fmt.Printf("C\n")
 	} else {
 		if err := r.runSchemaDown(ctx, options, context); err != nil {
 			return err
@@ -172,17 +175,22 @@ func (r *Runner) runSchema(ctx context.Context, options Options, context schemaC
 func (r *Runner) runSchemaUp(ctx context.Context, options Options, context schemaContext) (err error) {
 	log15.Info("Upgrading schema", "schema", context.schema.Name)
 
+	fmt.Printf("D\n")
 	definitions, err := context.schema.Definitions.UpFrom(context.version, options.NumMigrations)
+	fmt.Printf("E\n")
 	if err != nil {
 		return err
 	}
 
-	for _, definition := range definitions {
+	for i, definition := range definitions {
 		log15.Info("Running up migration", "schema", context.schema.Name, "migrationID", definition.ID)
 
+		fmt.Printf("XX %d\n", i)
 		if err := context.store.Up(ctx, definition); err != nil {
+			fmt.Printf("YY\n")
 			return err
 		}
+		fmt.Printf("ZZ\n")
 	}
 
 	return nil

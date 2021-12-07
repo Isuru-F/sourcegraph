@@ -6,4 +6,4 @@
 -- Instead, we'll make a partial index on useful fields that can at least help
 -- cover queries that select only/filter by id and/or name.
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS repo_non_deleted_id_name_idx ON repo(id, name) WHERE deleted_at IS NULL;
+--CREATE INDEX CONCURRENTLY IF NOT EXISTS repo_non_deleted_id_name_idx ON repo(id, name) WHERE deleted_at IS NULL;

@@ -5,8 +5,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/sourcegraph/sourcegraph/internal/database/migration/schemas"
 )
 
 // ConnectInternal connects to the given data source and return the handle. After successful connection,
@@ -26,45 +24,22 @@ import (
 //
 // Note: github.com/jackc/pgx parses the environment as well. This function will also use the value
 // of PGDATASOURCE if supplied and dataSource is the empty string.
-func ConnectInternal(dsn, appName, dbName string, schemas []*schemas.Schema) (*sql.DB, func(err error) error, error) {
+func ConnectInternal(dsn, appName, dbName string) (*sql.DB, error) {
 	cfg, err := buildConfig(dsn, appName)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	db, err := newWithConfig(cfg)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	var closeFns []func()
-
-	closeAll := func(err error) error {
-		for i := len(closeFns) - 1; i >= 0; i-- {
-			closeFns[i]()
-		}
-
-		if closeErr := db.Close(); closeErr != nil {
-			err = multierror.Append(err, closeErr)
-		}
-
-		return err
-	}
-
-	for _, schema := range schemas {
-		close, err := migrateDB(db, schema)
-		if err != nil {
-			return nil, nil, closeAll(err)
-		}
-
-		closeFns = append(closeFns, close)
+		return nil, err
 	}
 
 	if dbName != "" {
 		if err := prometheus.Register(newMetricsCollector(db, dbName, appName)); err != nil {
-			return nil, nil, closeAll(err)
+			return nil, multierror.Append(err, db.Close())
 		}
 	}
 
-	return db, closeAll, nil
+	return db, nil
 }

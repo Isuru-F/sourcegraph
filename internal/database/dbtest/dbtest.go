@@ -14,7 +14,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/sourcegraph/sourcegraph/internal/database/dbconn"
+	"github.com/sourcegraph/sourcegraph/internal/database/connections"
 	"github.com/sourcegraph/sourcegraph/internal/database/migration/schemas"
 )
 
@@ -145,11 +145,8 @@ func initTemplateDB(t testing.TB, config *url.URL) {
 
 		cfgCopy := *config
 		cfgCopy.Path = "/" + templateName
-		_, close := dbConnInternal(t, &cfgCopy, []*schemas.Schema{
-			schemas.Frontend,
-			schemas.CodeIntel,
-		})
-		close(nil)
+		db = dbConn(t, &cfgCopy, schemas.Frontend, schemas.CodeIntel)
+		db.Close()
 	})
 }
 
@@ -169,29 +166,13 @@ func wdHash() string {
 	return strconv.Itoa(int(h.Sum64()))
 }
 
-func dbConn(t testing.TB, cfg *url.URL) *sql.DB {
-	db, _ := dbConnInternal(t, cfg, nil)
-	return db
-}
-
-func dbConnInternal(t testing.TB, cfg *url.URL, schemas []*schemas.Schema) (*sql.DB, func(err error) error) {
+func dbConn(t testing.TB, cfg *url.URL, schemas ...*schemas.Schema) *sql.DB {
 	t.Helper()
-	db, close, err := newTestDB(cfg.String(), schemas...)
+	db, err := connections.NewTestDB(cfg.String(), schemas...)
 	if err != nil {
 		t.Fatalf("failed to connect to database %q: %s", cfg, err)
 	}
-	return db, close
-}
-
-// newTestDB connects to the given data source and returns the handle. After successful connection, the
-// schema version of the database will be compared against an expected version and the supplied migrations
-// may be run (taking an advisory lock to ensure exclusive access).
-//
-// This function returns a basestore-style callback that closes the database. This should be called instead
-// of calling Close directly on the database handle as it also handles closing migration objects associated
-// with the handle.
-func newTestDB(dsn string, schemas ...*schemas.Schema) (*sql.DB, func(err error) error, error) {
-	return dbconn.ConnectInternal(dsn, "", "", schemas)
+	return db
 }
 
 func dbExec(t testing.TB, db *sql.DB, q string, args ...interface{}) {
